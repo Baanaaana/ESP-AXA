@@ -3,6 +3,9 @@
 This module will connect the AXA Remote 2.0 with your Home Assistant Server using ESPHOME. The module will integrate in Home Assistant, showing the position of your Window (open or closed), and give you the possibility to open and close the window from there. The remote control will still work, the status of the window will synchronize with home assistant.
 ## Power
 The module is using a 5V power supply, and I use a DC-DC step-up converter (MT3608) to create the 8V (7.5 with some cable loss) for the AXA Remote from the 5V power supply. So, NO batteries needed in your AXA Remote (Remove these before plugging in the connector)! The Power Supply should have enough capacity to handle the motors inside the AXA. Preferable is a Raspberry Pi supply (model 3, 2.5A or more). The power can be connected via the WEMOS USB plug, or directly to the 5V and GND pin of the WEMOS. The DC-DC Converter should be adjusted to 8V, using a multimeter. You can plug in the power adapter to this module as well for delivering power.
+## PCB
+https://oshwlab.com/rene4/axa-remote
+(https://github.com/Baanaaana/espaxa/blob/master/docs/3D_PCB.png)
 ## Schema
 This is more like 'connecting the modules'. The DC-DC converter is connected to 5V and the power input of the AXA Remote (pins 1 and 2). The MCP2003 is the LINBUS driver. It has some special 'low power' capabilities we will not use. Therefor the /WAKE function is disabled, and Vren is not used. RxD is the OUTPUT signal! It should be connected to Rx of the Wemos. This is an 'open drain' output, so we have to pull-up to 3.3V to create a Wemos compatible signal. The input is Tx, this is a TTL compatible input, but will accept the 3.3V as a '1'. The decoupling capacitors used are 47uF, but any value > 10uF is OK. As an extra a BMP/BME280 module is integrated to measure Temperature, Pressure and Humidity (BME). A nice feature of ESPHOME, just to show, but not necessary for the AXA control.
 ![Schema](https://raw.githubusercontent.com/galagaking/espaxa/master/docs/Schematic_ESP_AXA_2020-08-26_21-20-54.png)
@@ -48,7 +51,6 @@ For inspiration and examples:
 Use this project as-is, I am not responsible for any unexpected open window at your home, or any damage to any hardware. This is a creative commons project, for non-commercial use only.
 ## todo
 
-- PCB?
 - multiple AXA Remotes chained? Two should work on one power supply, more will need some adjustment in the power management.
 
 
