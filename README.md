@@ -28,7 +28,7 @@ By looking at the logs (you can use the webserver at the modules address, the se
 [20:45:04][D][espaxa:054]: 210, 210 UnLocked <BR>
 ## Home Assistant
 The ESP module will show up as a new integration. After enabling this integration, you can add the entities given in your espaxa yaml file in your interface. The objects will already use their default MDI picture.
-![Home Assitant]([https://raw.githubusercontent.com/galagaking/espaxa/master/docs/2020-08-25_22-39-03.png](https://github.com/Baanaaana/espaxa/blob/master/docs/homeassistant_esphome.png))
+![Home Assitant](https://github.com/Baanaaana/espaxa/blob/master/docs/homeassistant_esphome.png)
 ## Thank you
 For inspiration and examples:
 - [SuperHouse Automation](https://github.com/SuperHouse/)
