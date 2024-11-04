@@ -1,5 +1,5 @@
 # ESPAXA
-![AXA2](https://github.com/galagaking/espaxa/blob/master/docs/20200831_155745.jpg)
+![AXA2](https://github.com/Baanaaana/espaxa/blob/master/docs/IMG_0939.jpeg)
 This module will connect the AXA Remote 2.0 with your Home Assistant Server using ESPHOME. The module will integrate in Home Assistant, showing the position of your Window (open or closed), and give you the possibility to open and close the window from there. The remote control will still work, the status of the window will synchronize with home assistant.
 ## Power
 The module is using a 5V power supply, and I use a DC-DC step-up converter (MT3608) to create the 8V (7.5 with some cable loss) for the AXA Remote from the 5V power supply. So, NO batteries needed in your AXA Remote (Remove these before plugging in the connector)! The Power Supply should have enough capacity to handle the motors inside the AXA. Preferable is a Raspberry Pi supply (model 3, 2.5A or more). The power can be connected via the WEMOS USB plug, or directly to the 5V and GND pin of the WEMOS. The DC-DC Converter should be adjusted to 8V, using a multimeter. You can plug in the power adapter to this module as well for delivering power.
