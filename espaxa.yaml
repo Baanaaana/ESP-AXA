@@ -1,106 +1,132 @@
+substitutions:
+  name: "esphome-axa-remote"
+
 esphome:
-  name: esp_axa_01
-  platform: ESP8266
-  board: d1_mini
-  
-#reference to custom component, change file location if needed
-
+  name: "$name"
+  friendly_name: ESPHome - AXA Remote 2.0
+  comment: ESP32-C3-MINI-1-N4 - AXA Remote 2.0 Controler
+  project:
+    name: "AXA_Remote_2_Controler"
+    version: "2024.10.0"
   includes:
-  - AXA/espaxa.h 
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_key
+    - "AXA/espaxa.h"
+  on_boot:
+    priority: -10
+    then:
+      - uart.write: "\r\n"
+      - delay: 100ms
+      - uart.write: "STOP\r\n"
+      - delay: 100ms
+      - uart.write: "CLOSE\r\n"
 
-# Enable logging
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+    version: latest
+
+packages:
+  base_general: !include .general-config.yaml
+  base_esp32: !include .esp32.yaml
+
 logger:
+  logs:
+    component: ERROR
 
-# Enable Home Assistant API (use password if needed)
-api:
+wifi:
+  manual_ip:
+    static_ip: 0.0.0.0
+    gateway: 0.0.0.1
+    subnet: 255.255.255.0
 
-#enable Over-The-Air updates (use password if needed)
-ota:
-
-time:
-  - platform: homeassistant
-    id: homeassistant_time
-
-# only used for I2C temperature sensor
-# SCAN: true will show all connected I2C devices and their addresses, probably needed to change in the 'sensor' section
-
-i2c:
-  sda: D2
-  scl: D1
-  scan: True
-
-# UART connected via MCP2003 LINbus driver
-# D6 to pin 1 of MCP2003 (RX)
-# D7 to pin 4 of MCP2003 (TX)
-# be aware that the RX pin of MCP2003 is the OUTPUT, and so TX pin is INPUT
+status_led:
+  pin:
+    number: GPIO2
+    inverted: True
 
 uart:
-  tx_pin: D7 #to pin 4 of the MCP2003
-  rx_pin: D6 #to pin 1 of the MCP2003
+  tx_pin: GPIO4
+  rx_pin: GPIO5
   baud_rate: 19200
   stop_bits: 2
   id: uart_bus
 
-sensor:
-# bme280 (or bmp280) only used for temperature sensor, change bmp/bme280 accordingly to your sensor.
-  - platform: bme280
-    temperature:
-      name: "Zolderraam temperatuur"
-      oversampling: 16x
-    pressure:
-      name: "BME280 Pressure"
-    humidity:
-      name: "BME280 Humidity"
-    address: 0x76
-    update_interval: 60s
-# get the status of the window from the Custom Component here, and make it available
+output:
+  - platform: gpio
+    pin: GPIO3
+    inverted: True
+    id: led_green
+
+light:
+  - platform: binary
+    name: "LED Green"
+    id: led_green_light
+    icon: mdi:led-variant-outline
+    output: led_green
+    internal: True
+
+custom_component:
+  - lambda: |-
+      auto axa = new CustomAXA2RemoteUART(id(uart_bus));
+      App.register_component(axa);
+      return {axa};
+
+text_sensor:
   - platform: custom
     lambda: |-
-      auto my_axa = new CustomAXA2RemoteUART(id(uart_bus));
-      App.register_component(my_axa);
-      return {my_axa->axa_window};
-    sensors:
-     name: "Axa Window"
-     id: my_axa
+      auto axa = new CustomAXA2RemoteUART(id(uart_bus));
+      App.register_component(axa);
+      return {axa->axa_status_text};
+    text_sensors:
+      - name: "Raam Status"
+        icon: mdi:window-closed
+        id: axa_status_text
 
-# use the cover component to connect Home Assistant. Get status from the 'my_axa' variable
-# send commands through ASCII UART interface. Add some delay
-# some setups seems to need a OPEN-BEFORE-CLOSE command, maybe to unlock the window.
+sensor:
+  - platform: custom
+    lambda: |-
+      auto axa = new CustomAXA2RemoteUART(id(uart_bus));
+      App.register_component(axa);
+      return {axa->axa_window};
+    sensors:
+      - name: "Status"
+        id: axa_window_status
+        internal: True
 
 cover:
   - platform: template
-    name: "Zolderraam"
-    # assumed_state TRUE will show both open and close buttons on Home Assistant interface
-    # therefor it is possible to stop the window halfway, if needed.
-    # If false (or removed) only one button will be shown in the interface.
-    assumed_state: false
+    name: "Raam"
+    assumed_state: False
     lambda: |-
-      if (id(my_axa).state==0) {
-        return cover::COVER_CLOSED;
+      if (id(axa_window_status).state) {
+        return COVER_OPEN;
       } else {
-        return cover::COVER_OPEN;
+        return COVER_CLOSED;
       }
     open_action:
-      # Cancel any previous action
+      - logger.log: "Window open action triggered"
+      - light.turn_on: led_green_light
       - uart.write: "\r"
       - delay: 0.1s
       - uart.write: "STOP\r\n"
       - delay: 0.1s
       - uart.write: "OPEN\r\n"
-      # To prevent 'deadlock' in Window push open before close (try your own setup if needed, removing the 'OPEN' command below
+      - light.turn_off: led_green_light
     close_action:
+      - logger.log: "Window close action triggered"
+      - light.turn_on: led_green_light
       - uart.write: "\r"
       - delay: 0.1s
       - uart.write: "STOP\r\n"
       - delay: 0.1s
-      - uart.write: "OPEN\r\n"  
+      - uart.write: "OPEN\r\n"
       - delay: 0.1s
       - uart.write: "CLOSE\r\n"
+      - light.turn_off: led_green_light
     stop_action:
+      - logger.log: "Window stop action triggered"
+      - light.turn_on: led_green_light
       - uart.write: "\r"
       - delay: 0.1s
       - uart.write: "STOP\r\n"
-
+      - light.turn_off: led_green_light
