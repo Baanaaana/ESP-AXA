@@ -1,32 +1,21 @@
 #include "esphome.h"
 
-
 using namespace esphome;
 
-#define DELAY_MS 30000 // Delay in miliseconds between window checks, give it some time
+#define DELAY_MS 5000 // Delay in milliseconds between window checks
 
-// AXA REMOTE 2.0 return strings
-
-// 200 OK                    -> OPEN / CLOSE
-// 210 Unlocked              -> STATUS
-// 211 Strong Locked         -> STATUS
-// 260 AXA RV2900 2.0        -> DEVICE
-// 261 Firmware v1.20 2012   -> FIRMWARE
-// 502 Command not implemented
-
+// Define AXA Remote 2.0 return codes
 #define AXA_OPENED 210 // 210 Unlocked
-#define AXA_CLOSED 211 // 211 Strong Locked
-
+#define AXA_STRONG_LOCKED 211 // 211 Strong Locked
+#define AXA_WEAK_LOCKED 212 // 212 Weak Locked
 
 class CustomAXA2RemoteUART : public Component, public UARTDevice {
-protected:
-    unsigned long lastread;
-    char buff[30];
-    int i,dummy;
-    int axa_status;
 public:
     CustomAXA2RemoteUART(UARTComponent *parent) : UARTDevice(parent) {}
-    Sensor *axa_window = new Sensor();
+
+    Sensor *axa_window = new Sensor();  // Define Sensor for open/close status
+    TextSensor *axa_status_text = new TextSensor();  // Define Text Sensor for status display
+
     void setup() override {
         lastread = 0;
         ESP_LOGCONFIG("espaxa", "Setting up AXA UART...");
@@ -37,37 +26,89 @@ public:
 
         if (now - lastread > DELAY_MS || lastread == 0) {
             lastread = now;
-            while (available()) { // empty UART input buffer
-                dummy=read();
-            }
-            write_str("\r\n");  // send dummy character
+            flush_uart_buffer(); // Clear buffer
+            request_status();
             delay(100);
-            write_str("STATUS\r\n");  // ask status
-            delay(100);
-            if (available() )
-            {
-                i=0;
-                while (available()) {
-                    buff[i++]=read(); // get return string
-                    if (i>=29) {
-                        break;
-                    }
-                }
-                buff[i]=0;
-                axa_status=100*(buff[0]-'0')+10*(buff[1]-'0')+(buff[2]-'0');  // calculate status code from first three digits
-                i=i-2;
-                buff[i]=0; // remove 0D 0A linebreak
-                ESP_LOGD("espaxa", "%d %s-> %d", i, buff,axa_status);
-                if (axa_status==AXA_CLOSED)
-                {
-                    axa_window->publish_state(COVER_CLOSED); // only AXA_CLOSED will return CLOSED
-                }
-                else if (axa_status==AXA_OPENED)
-                {
-                    axa_window->publish_state(COVER_OPEN);  // only AXA_OPENED will return OPEN
-                }
-                // no messages will be published on any other state (ie. 502 Command not implemented)
+
+            if (available()) {
+                read_response();
+                update_sensor_state();
             }
+        }
+    }
+
+protected:
+    unsigned long lastread;
+    char buff[30];
+    int axa_status;
+
+    void flush_uart_buffer() {
+        while (available()) {
+            read();
+        }
+    }
+
+    void request_status() {
+        write_str("\r\n");
+        delay(100);
+        write_str("STATUS\r\n");
+    }
+
+    void read_response() {
+        int i = 0;
+        while (available()) {
+            buff[i++] = read();
+            if (i >= 29) break;
+        }
+        buff[i] = '\0';
+
+        // Manually parse lines from the buffer
+        char *line = strtok(buff, "\n");
+        bool parsed = false;
+
+        while (line != NULL) {
+            // Remove any carriage return characters
+            for (int j = 0; line[j] != '\0'; j++) {
+                if (line[j] == '\r') {
+                    line[j] = '\0';
+                    break;
+                }
+            }
+
+            // Check if the line starts with a 3-digit status code
+            if (strlen(line) >= 3 && isdigit(line[0]) && isdigit(line[1]) && isdigit(line[2])) {
+                axa_status = atoi(line);  // Convert first 3 characters to integer
+                ESP_LOGD("espaxa", "Parsed AXA Status Code: %d, Line: %s", axa_status, line);
+                parsed = true;
+                break;
+            }
+
+            // Move to the next line
+            line = strtok(NULL, "\n");
+        }
+
+        if (!parsed) {
+            axa_status = -1;  // Set to an invalid status if parsing fails
+            ESP_LOGW("espaxa", "Failed to parse AXA Status Code. Full Response: %s", buff);
+        }
+    }
+
+    void update_sensor_state() {
+        if (axa_status == AXA_STRONG_LOCKED) {
+            ESP_LOGD("espaxa", "Setting window state to STRONG LOCKED (CLOSED)");
+            axa_window->publish_state(0);  // Publish 0 for strong locked (closed)
+            axa_status_text->publish_state("Strong Locked");
+        } else if (axa_status == AXA_OPENED) {
+            ESP_LOGD("espaxa", "Setting window state to OPEN (UNLOCKED)");
+            axa_window->publish_state(1);  // Publish 1 for open
+            axa_status_text->publish_state("Unlocked");
+        } else if (axa_status == AXA_WEAK_LOCKED) {
+            ESP_LOGD("espaxa", "Setting window state to WEAK LOCKED (CLOSED)");
+            axa_window->publish_state(0);  // Publish 0 for weak locked (closed)
+            axa_status_text->publish_state("Weak Locked");
+        } else {
+            ESP_LOGD("espaxa", "Unknown AXA status, state not updated.");
+            axa_status_text->publish_state("Unknown");
         }
     }
 };
