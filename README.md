@@ -17,6 +17,7 @@ We use ESPHOME to create the firmware. This is more like a configuration than a 
 [here](https://esphome.io/) or [here](https://www.galagaking.org/2019/11/05/esphome-workshop/). To start, connect the ESPAXA (without connecting the AXA Remote) directly to your USB port to upload the sketch the first time. Now OTA is installed, you can upload any new sketch 'Over the Air'. ESPHOME will try to find the module itself. If not, you must manage your DHCP server and 'hardcode' an IP address. The 'Closing' sequence starts with a short 'Open' command. It seems the AXA Remote will 'block' at the end position. By sending an 'Open' command before closing, the unit will 'deblock'.
 ## Connecting
 Use a RJ12 connecter to connect the module to the AXA remote. Use the connection in the schema. Remove the batteries in the AXA Remote!
+
 ![Connector](https://github.com/galagaking/espaxa/blob/master/docs/20200831_155821.jpg)
 ## Logs
 By looking at the logs (you can use the webserver at the modules address, the serial port output or the esphome logs command), you can see if the module is working. It will output the WiFi connection, Home Assistant connection and at a 5 sec interval the state of your Window. If any command is given, this will show up as well.
