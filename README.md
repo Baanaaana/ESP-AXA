@@ -5,6 +5,7 @@ This module will connect the AXA Remote 2.0 with your Home Assistant Server usin
 The module is using a 5V power supply, and I use a DC-DC step-up converter (MT3608) to create the 8V (7.5 with some cable loss) for the AXA Remote from the 5V power supply. So, NO batteries needed in your AXA Remote (Remove these before plugging in the connector)! The Power Supply should have enough capacity to handle the motors inside the AXA. Preferable is a Raspberry Pi supply (model 3, 2.5A or more). The power can be connected via the WEMOS USB plug, or directly to the 5V and GND pin of the WEMOS. The DC-DC Converter should be adjusted to 8V, using a multimeter. You can plug in the power adapter to this module as well for delivering power.
 ## PCB
 https://oshwlab.com/rene4/axa-remote
+
 ![3D_PCB](https://github.com/Baanaaana/espaxa/blob/master/docs/3D_PCB.png)
 ## Reference
 - [Data sheet MCP 2003](http://ww1.microchip.com/downloads/en/devicedoc/22230a.pdf)
