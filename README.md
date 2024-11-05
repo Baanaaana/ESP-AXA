@@ -1,6 +1,6 @@
 based on galagaking/espaxa. Thanks for your work!
 
-# ESPAXA
+# ESPAXA - For ESPHome and Home Assistant
 ![AXA2](https://github.com/Baanaaana/espaxa/blob/master/docs/IMG_0939.jpeg)
 This module will connect the AXA Remote 2.0 with your Home Assistant Server using ESPHOME. The module will integrate in Home Assistant, showing the position of your Window (open or closed), and give you the possibility to open and close the window from there. The remote control will still work, the status of the window will synchronize with home assistant.
 ## Power
@@ -13,8 +13,8 @@ https://oshwlab.com/rene4/axa-remote
 - [Data sheet MCP 2003](http://ww1.microchip.com/downloads/en/devicedoc/22230a.pdf)
 - [AXA Documentation](http://files.domoticaforum.eu/uploads/Axa/AXA%20Remote%202%20domotica%20English%202012nov_V2.pdf)
 ## Programming
-We use ESPHOME to create the firmware. This is more like a configuration than a program. [espaxa.yaml](https://github.com/baanaaana/espaxa/blob/master/espaxa.yaml) has all the definitions and is also referring to some program code in AXA/espaxa.h. You must create this directory and put the [expaxa.h](https://github.com/baanaaana/espaxa/blob/master/AXA/espaxa.h) file in it. Also fill in the WiFi credentials (or better: use the secrets file). More info on esphome
-[here](https://esphome.io/) or [here](https://www.galagaking.org/2019/11/05/esphome-workshop/). To start, connect the ESPAXA (without connecting the AXA Remote) directly to your USB port to upload the sketch the first time. Now OTA is installed, you can upload any new sketch 'Over the Air'. ESPHOME will try to find the module itself. If not, you must manage your DHCP server and 'hardcode' an IP address. The 'Closing' sequence starts with a short 'Open' command. It seems the AXA Remote will 'block' at the end position. By sending an 'Open' command before closing, the unit will 'deblock'.
+We use ESPHome to create the firmware. This is more like a configuration than a program. [espaxa.yaml](https://github.com/baanaaana/espaxa/blob/master/espaxa.yaml) has all the definitions and is also referring to some program code in AXA/espaxa.h. You must create this directory and put the [expaxa.h](https://github.com/baanaaana/espaxa/blob/master/AXA/espaxa.h) file in it. Also fill in the WiFi credentials (or better: use the secrets file). More info on ESPHome
+[here](https://esphome.io/) or [here](https://www.galagaking.org/2019/11/05/esphome-workshop/). To start, connect the ESPAXA (without connecting the AXA Remote) directly to your USB port to upload the sketch the first time. Now OTA is installed, you can upload any new sketch 'Over the Air'. ESPHome will try to find the module itself. If not, you must manage your DHCP server and 'hardcode' an IP address. The 'Closing' sequence starts with a short 'Open' command. It seems the AXA Remote will 'block' at the end position. By sending an 'Open' command before closing, the unit will 'deblock'.
 ## Connecting
 Use a RJ12 connecter to connect the module to the AXA remote. Use the connection in the schema. Remove the batteries in the AXA Remote!
 
