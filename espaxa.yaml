@@ -25,19 +25,103 @@ esp32:
     type: arduino
     version: latest
 
-packages:
-  base_general: !include .general-config.yaml
-  base_esp32: !include .esp32.yaml
+wifi:
+  reboot_timeout: 1min
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  ap:
+    ssid: !secret ap_ssid
+    password: !secret ap_password
+
+captive_portal:
+
+web_server:
+  version: 3
+  port: 80
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+api:
+  reboot_timeout: 1min
+  encryption:
+    key: !secret api_encryption_key
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+sensor:
+  - platform: uptime
+    id: uptime_sensor
+    icon: mdi:clock-start
+    internal: True
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+
+  - platform: wifi_signal
+    name: WiFi Signal
+    update_interval: 60s
+    icon: mdi:wifi
+
+button:
+  - platform: safe_mode
+    name: "Safe Mode"
+    internal: false
+    icon: mdi:restart-alert
+
+  - platform: restart
+    id: restart_button
+    name: "Restart"
+    icon: mdi:restart
+
+text_sensor:
+  - platform: version
+    name: "ESPHome Version"
+    hide_timestamp: true
+
+  - platform: template
+    name: Uptime
+    id: uptime_human
+    icon: mdi:clock-start
+
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      id: ip_address
+      icon: mdi:ip
+    mac_address:
+      name: "MAC Address"
+      icon: mdi:wifi-settings
+    ssid:
+      name: "SSID"
+      id: ssid_address
+      icon: mdi:wifi-settings
+    bssid:
+      name: "BSSID"
+      icon: mdi:wifi-settings
 
 logger:
   logs:
     component: ERROR
-
-wifi:
-  manual_ip:
-    static_ip: 0.0.0.0
-    gateway: 0.0.0.1
-    subnet: 255.255.255.0
 
 status_led:
   pin:
