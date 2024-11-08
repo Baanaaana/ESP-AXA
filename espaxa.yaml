@@ -141,6 +141,20 @@ output:
     inverted: True
     id: led_green
 
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: 9
+      inverted: true
+    name: BOOT Button
+    icon: mdi:radiobox-marked
+    on_press:
+      then:
+        - light.turn_on: led_green_light
+    on_release:
+      then:
+        - light.turn_off: led_green_light
+
 light:
   - platform: binary
     name: "LED Green"
@@ -162,8 +176,8 @@ text_sensor:
       App.register_component(axa);
       return {axa->axa_status_text};
     text_sensors:
-      - name: "Raam Status"
-        icon: mdi:window-closed
+      - name: "AXA Status"
+        icon: mdi:lock
         id: axa_status_text
 
 sensor:
