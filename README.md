@@ -1,6 +1,6 @@
 based on galagaking/espaxa. Thanks for your work!
 
-# ESPAXA - For ESPHome and Home Assistant
+# ESP-AXA - For ESPHome and Home Assistant
 ![AXA2](https://github.com/Baanaaana/espaxa/blob/master/docs/IMG_0939.jpeg)
 This module will connect the AXA Remote 2.0 with your Home Assistant Server using ESPHOME. The module will integrate in Home Assistant, showing the position of your Window (open or closed), and give you the possibility to open and close the window from there. The remote control will still work, the status of the window will synchronize with home assistant.
 ## Power
